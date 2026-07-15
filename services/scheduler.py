@@ -10,24 +10,33 @@ def check_prices(app):
         products=Product.query.all()
         print(f"Checking {len(products)} products at {datetime.utcnow()}")
         for product in products:
-            data=scrape_product(product.url)
-            product.current_price=data["price"]
+            try:
+                print(f"Checking product: {product.title}")
+                data = scrape_product(product.url)
+            except Exception as e:
+                print(f"Skipping '{product.title}': {e}")
+                continue
+            product.current_price = data["price"]
             product.last_checked = datetime.utcnow()
-            history=PriceHistory(
+            history = PriceHistory(
                 product_id=product.id,
                 price=data["price"]
             )
             db.session.add(history)
-            
+
             for watch in product.watch_requests:
                 if (
                     product.current_price <= watch.target_price
                     and not watch.notification_sent
                 ):
-                    send_price_alert(watch.user,product)
-                    watch.notification_sent=True
-                    print(watch.notification_sent)
+                    print(f"Price reached for {product.title}")
+                    print(f"Current: {product.current_price} | Target: {watch.target_price}")
+                    print(f"Sending email to {watch.user.email}")
+                    send_price_alert(watch.user, product)
+                    watch.notification_sent = True
+                    print("Email sent successfully.")
             db.session.commit()
+            print(f"Finished checking {product.title}")
 def start_scheduler(app):
     if scheduler.running:
         return
