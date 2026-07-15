@@ -1,4 +1,5 @@
 from flask import Flask
+import os
 from extensions import db, migrate,bcrypt,login_manager,mail
 app=Flask(__name__)
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
