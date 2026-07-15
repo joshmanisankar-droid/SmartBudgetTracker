@@ -1,15 +1,14 @@
 from flask import Flask
 from extensions import db, migrate,bcrypt,login_manager,mail
 app=Flask(__name__)
-app.config["SECRET_KEY"] = "josh_secret_key_2026"  
-app.config["SQLALCHEMY_DATABASE_URI"]="sqlite:///price_tracker.db"
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"]=False
-app.config["MAIL_SERVER"] = "smtp.gmail.com"
-app.config["MAIL_PORT"] = 587
-app.config["MAIL_USE_TLS"] = True
-app.config["MAIL_USERNAME"] = "joshmanisankar@gmail.com"
-app.config["MAIL_PASSWORD"] = "jyse jbkq jroz elkp"
-app.config["MAIL_DEFAULT_SENDER"] = "joshmanisankar@gmail.com"
+app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
+
+app.config["MAIL_SERVER"] = os.getenv("MAIL_SERVER")
+app.config["MAIL_PORT"] = int(os.getenv("MAIL_PORT"))
+app.config["MAIL_USE_TLS"] = os.getenv("MAIL_USE_TLS") == "True"
+
+app.config["MAIL_USERNAME"] = os.getenv("MAIL_USERNAME")
+app.config["MAIL_PASSWORD"] = os.getenv("MAIL_PASSWORD")
 db.init_app(app)
 migrate.init_app(app,db)
 bcrypt.init_app(app)
