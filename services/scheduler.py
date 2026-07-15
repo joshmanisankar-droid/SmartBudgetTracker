@@ -4,40 +4,56 @@ from model import Product,PriceHistory
 from services.scraper import scrape_product
 from services.email_services import send_price_alert
 from extensions import db
+import traceback
 scheduler = BackgroundScheduler()
 def check_prices(app):
     with app.app_context():
-        products=Product.query.all()
-        print(f"Checking {len(products)} products at {datetime.utcnow()}")
-        for product in products:
-            try:
-                print(f"Checking product: {product.title}")
-                data = scrape_product(product.url)
-            except Exception as e:
-                print(f"Skipping '{product.title}': {e}")
-                db.session.rollback()
-                continue
-            product.current_price = data["price"]
-            product.last_checked = datetime.utcnow()
-            history = PriceHistory(
-                product_id=product.id,
-                price=data["price"]
-            )
-            db.session.add(history)
+        print(f"=== Scheduler started at {datetime.utcnow()} ===")
+        try:
+            products = Product.query.all()
+            print(f"Found {len(products)} products")
 
-            for watch in product.watch_requests:
-                if (
-                    product.current_price <= watch.target_price
-                    and not watch.notification_sent
-                ):
-                    print(f"Price reached for {product.title}")
-                    print(f"Current: {product.current_price} | Target: {watch.target_price}")
-                    print(f"Sending email to {watch.user.email}")
-                    send_price_alert(watch.user, product)
-                    watch.notification_sent = True
-                    print("Email sent successfully.")
-            db.session.commit()
-            print(f"Finished checking {product.title}")
+            for product in products:
+                print(f"Checking: {product.title}")
+                try:
+                    data = scrape_product(product.url)
+                except Exception as e:
+                    print(f"Skipping '{product.title}': {e}")
+                    db.session.rollback()
+                    continue
+
+                product.current_price = data["price"]
+                product.last_checked = datetime.utcnow()
+
+                db.session.add(
+                    PriceHistory(
+                        product_id=product.id,
+                        price=data["price"]
+                    )
+                )
+
+                for watch in product.watch_requests:
+                    print(f"Current={product.current_price}, Target={watch.target_price}, Sent={watch.notification_sent}")
+                    if product.current_price <= watch.target_price and not watch.notification_sent:
+                        print(f"Sending alert to {watch.user.email}")
+                        try:
+                            send_price_alert(watch.user, product)
+                            watch.notification_sent = True
+                            print("Alert sent successfully")
+                        except Exception:
+                            traceback.print_exc()
+                            db.session.rollback()
+
+                db.session.commit()
+                db.session.remove()
+                print(f"Finished {product.title}")
+
+        except Exception:
+            traceback.print_exc()
+            db.session.rollback()
+        finally:
+            db.session.remove()
+            print("=== Scheduler finished ===")
 def start_scheduler(app):
     if scheduler.running:
         return
@@ -45,7 +61,7 @@ def start_scheduler(app):
     scheduler.add_job(
         check_prices,
         trigger="interval",
-        seconds=60,
+        minutes=2,
         args=[app],
         id="price_checker",
         max_instances=1,
