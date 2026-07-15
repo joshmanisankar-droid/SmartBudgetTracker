@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Register — Smart Budget Tracker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<div class="auth-shell">
+
+  <div class="auth-visual">
+    <div class="brand">
+      <div class="brand-mark">💰</div>
+      <div class="brand-name">Smart Budget</div>
+    </div>
+
+    <div>
+      <h2>Start tracking, start saving.</h2>
+      <p style="margin-top:10px;">Create your free account today to automatically scan deals, track history, and get alerts directly in your inbox.</p>
+    </div>
+
+    <div class="receipt">
+      <div class="rline"><span>Instant price alerts</span><span class="down">Active</span></div>
+      <div class="rline"><span>Supported platforms</span><span>Amazon, Flipkart & more</span></div>
+      <div class="rline"><span>Account Tier</span><span>100% Free Plan</span></div>
+    </div>
+  </div>
+
+  <div class="auth-form">
+    <div class="auth-card">
+      <h1>Create an account</h1>
+      <p class="subhead">Enter your details below to get started.</p>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            <div class="badge badge-sent" style="width: 100%; padding: 12px; border-radius: var(--radius); margin-bottom: 16px; text-align: left;">
+              ⚠️ {{ message }}
+            </div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+
+      <form action="{{ url_for('auth.register') }}" method="POST">
+        <div class="field">
+          <label for="name">Name</label>
+          <input 
+            id="name" 
+            name="name" 
+            type="text" 
+            placeholder="Your name" 
+            required
+          >
+        </div>
+
+        <div class="field">
+          <label for="email">Email address</label>
+          <input 
+            id="email" 
+            name="email" 
+            type="email" 
+            placeholder="you@example.com" 
+            required
+          >
+        </div>
+        
+        <div class="field">
+          <label for="password">Password</label>
+          <input 
+            id="password" 
+            name="password" 
+            type="password" 
+            placeholder="Create a strong password" 
+            required
+          >
+        </div>
+        
+        <button type="submit" class="btn btn-primary full" style="margin-top: 8px;">
+          Register
+        </button>
+      </form>
+
+      <p class="foot-note">
+        Already have an account? 
+        <a href="{{ url_for('auth.login') }}" style="color:var(--accent); font-weight:500; text-decoration: none;">
+          Log in
+        </a>
+      </p>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

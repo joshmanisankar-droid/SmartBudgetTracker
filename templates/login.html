@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Log in — Smart Budget Tracker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<div class="auth-shell">
+
+  <div class="auth-visual">
+    <div class="brand">
+      <div class="brand-mark">SB</div>
+      <div class="brand-name">Smart Budget</div>
+    </div>
+
+    <div>
+      <h2>Buy it when it's actually worth it.</h2>
+      <p style="margin-top:10px;">Paste a link, set your price, and we'll watch it for you until it drops.</p>
+    </div>
+
+    <div class="receipt">
+      <div class="rline"><span>Running shoes, size 9</span><span>₹1,999</span></div>
+      <div class="rline"><span>Your target</span><span>₹1,800</span></div>
+      <div class="rline"><span>Wireless headphones</span><span class="down">₹2,149</span></div>
+      <div class="rline"><span>Your target</span><span>₹2,200</span></div>
+      <div class="rline"><span>Status</span><span class="down">2 targets reached</span></div>
+    </div>
+  </div>
+
+  <div class="auth-form">
+    <div class="auth-card">
+      <h1>Welcome back</h1>
+      <p class="subhead">Log in to see what's dropped in price.</p>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            <div class="badge badge-sent" style="width: 100%; padding: 12px; border-radius: var(--radius); margin-bottom: 16px; text-align: left;">
+              ⚠️ {{ message }}
+            </div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+
+      <form action="{{ url_for('auth.login') }}" method="POST">
+        <div class="field">
+          <label for="email">Email</label>
+          <input 
+            id="email" 
+            name="email" 
+            type="email" 
+            placeholder="you@example.com" 
+            required
+          >
+        </div>
+        <div class="field">
+          <label for="password">Password</label>
+          <input 
+            id="password" 
+            name="password" 
+            type="password" 
+            placeholder="Enter your password" 
+            required
+          >
+        </div>
+        <div class="row-between">
+          <label class="checkline">
+            <input type="checkbox" name="remember" style="margin:0;"> Remember me
+          </label>
+          <a href="#" style="color:var(--accent);font-weight:500;">Forgot password?</a>
+        </div>
+        <button type="submit" class="btn btn-primary full">Log in</button>
+      </form>
+
+      <p class="foot-note">
+        Don't have an account? 
+        <a href="{{ url_for('auth.register') }}" style="color:var(--accent);font-weight:500;">Register</a>
+      </p>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

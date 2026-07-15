@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard — Smart Budget Tracker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<div class="shell">
+
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">SB</div>
+      <div class="brand-name">Smart Budget</div>
+    </div>
+
+    <nav class="nav">
+      <a href="{{ url_for('auth.dashboard') }}" class="active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+        Dashboard
+      </a>
+      <a href="{{ url_for('product.add_product') }}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>
+        Track product
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="avatar">{{ current_user.name[0] | upper if current_user.is_authenticated else 'U' }}</div>
+      <div>
+        <div class="who" style="max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+          {{ current_user.name if current_user.is_authenticated else 'Guest' }}
+        </div>
+        <div class="role">
+          {% if current_user.is_authenticated %}
+            <a href="{{ url_for('auth.logout') }}" style="color: var(--danger); text-decoration: none; font-size: 11px; font-weight: 500;">Logout</a>
+          {% else %}
+            Free plan
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+    
+    {% set total_items = watch_requests | length if watch_requests else 0 %}
+    {% set alerts_sent = watch_requests | selectattr('notification_sent', 'equalto', true) | list | length if watch_requests else 0 %}
+    {% set targets_reached = namespace(count=0) %}
+    {% set total_savings = namespace(value=0.0) %}
+
+    {% if watch_requests %}
+      {% for watch in watch_requests %}
+        {% if watch.product.current_price <= watch.target_price %}
+          {% set targets_reached.count = targets_reached.count + 1 %}
+          {% set savings = watch.target_price - watch.product.current_price %}
+          {% if savings > 0 %}
+            {% set total_savings.value = total_savings.value + savings %}
+          {% endif %}
+        {% endif %}
+      {% endfor %}
+    {% endif %}
+
+    <div class="page-head">
+      <div>
+        <p class="eyebrow">welcome back</p>
+        <h1>{{ current_user.name.split(' ')[0] if current_user.is_authenticated else 'User' }}'s tracked products</h1>
+        <p class="subhead">{{ total_items }} product{{ 's' if total_items != 1 else '' }} watched · {{ targets_reached.count }} due for a drop</p>
+      </div>
+      <a href="{{ url_for('product.add_product') }}" class="btn btn-primary">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+        Track a product
+      </a>
+    </div>
+
+    <div class="stats">
+      <div class="stat">
+        <div class="label">Tracking</div>
+        <div class="value mono">{{ total_items }}</div>
+      </div>
+      <div class="stat">
+        <div class="label">Alerts sent</div>
+        <div class="value mono">{{ alerts_sent }}</div>
+      </div>
+      <div class="stat">
+        <div class="label">Price drops</div>
+        <div class="value mono {% if targets_reached.count > 0 %}up{% endif %}">{{ targets_reached.count }}</div>
+      </div>
+      <div class="stat">
+        <div class="label">Saved so far</div>
+        <div class="value mono up">₹{{ "%.2f"|format(total_savings.value) }}</div>
+      </div>
+    </div>
+
+    <div class="ledger-head">
+      <h2>Your ledger</h2>
+    </div>
+
+    <div class="ledger">
+      {% if watch_requests %}
+        {% for watch in watch_requests %}
+          <div class="row">
+            <div class="thumb">
+              {% if watch.product.image_url %}
+                <img src="{{ watch.product.image_url }}" alt="" style="width: 100%; height: 100%; object-fit: contain; border-radius: 9px;">
+              {% else %}
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 9h16M9 4v16"/></svg>
+              {% endif %}
+            </div>
+            <div>
+              <div class="pname" style="max-width: 380px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                <a href="{{ watch.product.url }}" target="_blank" style="color: inherit; text-decoration: none; font-weight: 500;">
+                  {{ watch.product.title }}
+                </a>
+              </div>
+              <div class="pmeta">
+                <span style="text-transform: capitalize;">{{ watch.product.website }}</span> · 
+                checked {{ watch.product.last_checked.strftime('%d %b, %H:%M') if watch.product.last_checked else 'never' }}
+              </div>
+            </div>
+            <div class="price-col">
+              <div class="target">target ₹{{ "%.2f"|format(watch.target_price) }}</div>
+              <div class="current {% if watch.product.current_price <= watch.target_price %}hit{% endif %}">
+                ₹{{ "%.2f"|format(watch.product.current_price) }}
+              </div>
+            </div>
+
+            {% if watch.notification_sent %}
+              <span class="badge badge-sent">Alert sent</span>
+            {% elif watch.product.current_price <= watch.target_price %}
+              <span class="badge badge-hit">Target reached</span>
+            {% else %}
+              <span class="badge badge-watch">Watching</span>
+            {% endif %}
+
+            <div class="row-actions">
+              <a href="{{ url_for('product.edit_watch', watch_id=watch.id) }}" class="icon-btn" aria-label="Edit target price">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg>
+              </a>
+              <form action="{{ url_for('product.delete_watch', watch_id=watch.id) }}" method="POST" style="margin: 0; display: inline;" onsubmit="return confirm('Stop tracking this product?');">
+                <button type="submit" class="icon-btn" aria-label="Delete" style="background: none; border: none; padding: 0;">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0l-1 14a2 2 0 01-2 2H7a2 2 0 01-2-2L4 6"/></svg>
+                </button>
+              </form>
+            </div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <div style="padding: 60px; text-align: center; border: 1px dashed var(--border); border-radius: var(--radius-lg); background: var(--surface);">
+          <div style="font-size: 32px; margin-bottom: 12px;">🔍</div>
+          <h3 style="font-size: 16px; margin: 0 0 6px 0;">No Products Being Tracked</h3>
+          <p class="subhead" style="margin-bottom: 20px;">Add a product URL link to keep tabs on price adjustments.</p>
+          <a href="{{ url_for('product.add_product') }}" class="btn btn-primary" style="text-decoration: none;">Track your first product</a>
+        </div>
+      {% endif %}
+    </div>
+  </main>
+</div>
+</body>
+</html>
