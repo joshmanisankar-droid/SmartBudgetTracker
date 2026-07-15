@@ -1,30 +1,41 @@
+import os
 import requests
-from bs4 import BeautifulSoup
+from dotenv import load_dotenv
 
-HEADERS = {
-    "User-Agent":
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)"
-}
+load_dotenv()
+
+API_KEY = os.getenv("RAINFOREST_API_KEY")
+
 
 def scrape_product(url):
-    response=requests.get(url,headers=HEADERS)
-    if response.status_code!=200:
-        raise Exception("Failed to fetch webpage")
-    soup=BeautifulSoup(response.text,"lxml")
-    title=soup.find("h1").get_text(strip=True)
-    price_text = soup.find("p", class_="price_color").get_text(strip=True)
-    price = float(
-        price_text
-            .replace("Â", "")
-            .replace("£", "")
-            .strip()
+    if "amazon." not in url:
+        raise Exception("Only Amazon links are supported.")
+
+    params = {
+        "api_key": API_KEY,
+        "type": "product",
+        "url": url
+    }
+
+    response = requests.get(
+        "https://api.rainforestapi.com/request",
+        params=params,
+        timeout=30
     )
-    image=soup.find("img")["src"]
-    image=image.replace("../../","https://books.toscrape.com/")
-    availability = soup.find("p",class_="instock availability").get_text(strip=True)
+
+    if response.status_code != 200:
+        raise Exception("Failed to fetch product from Rainforest API.")
+
+    data = response.json()
+
+    if not data["request_info"]["success"]:
+        raise Exception(data["request_info"].get("message", "Rainforest API Error"))
+
+    product = data["product"]
+
     return {
-        "title": title,
-        "price": price,
-        "image": image,
-        "availability": availability
+        "title": product["title"],
+        "price": float(product["buybox_winner"]["price"]["value"]),
+        "image": product["main_image"]["link"],
+        "availability": product["buybox_winner"]["availability"]["raw"]
     }

@@ -1,11 +1,18 @@
 from flask import Flask
+from dotenv import load_dotenv
 import os
+load_dotenv()
 from extensions import db, migrate,bcrypt,login_manager,mail
 app=Flask(__name__)
-app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv(
-    "DATABASE_URL",
-    "sqlite:///instance/price_tracker.db"
-)
+
+database_url = os.getenv("DATABASE_URL")
+
+if database_url:
+    database_url = database_url.replace("postgres://", "postgresql://", 1)
+else:
+    database_url = "sqlite:///instance/price_tracker.db"
+
+app.config["SQLALCHEMY_DATABASE_URI"] = database_url
 
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
