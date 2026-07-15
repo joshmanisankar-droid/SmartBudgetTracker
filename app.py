@@ -24,13 +24,11 @@ mail.init_app(app)
 
 from model import User, Product, WatchRequest, PriceHistory
 @login_manager.user_loader
-@login_manager.user_loader
 def load_user(user_id):
     return db.session.get(User, int(user_id))
 with app.app_context():
     db.create_all()
 from services.scheduler import start_scheduler
-import os
 if os.environ.get("WERKZEUG_RUN_MAIN") == "true":
     start_scheduler(app)
 
