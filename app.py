@@ -2,6 +2,12 @@ from flask import Flask
 import os
 from extensions import db, migrate,bcrypt,login_manager,mail
 app=Flask(__name__)
+app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv(
+    "DATABASE_URL",
+    "sqlite:///instance/price_tracker.db"
+)
+
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
 
 app.config["MAIL_SERVER"] = os.getenv("MAIL_SERVER")
