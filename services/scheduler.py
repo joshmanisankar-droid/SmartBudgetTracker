@@ -8,7 +8,7 @@ scheduler = BackgroundScheduler()
 def check_prices(app):
     with app.app_context():
         products=Product.query.all()
-        print(f"checking {len(products)} products....")
+        print(f"Checking {len(products)} products at {datetime.utcnow()}")
         for product in products:
             data=scrape_product(product.url)
             product.current_price=data["price"]
@@ -29,6 +29,9 @@ def check_prices(app):
                     print(watch.notification_sent)
             db.session.commit()
 def start_scheduler(app):
+    if scheduler.running:
+        return
+    print("Starting APScheduler...")
     scheduler.add_job(
         check_prices,
         "interval",
@@ -36,3 +39,4 @@ def start_scheduler(app):
         args=[app]
     )
     scheduler.start()
+    print("APScheduler started.")
