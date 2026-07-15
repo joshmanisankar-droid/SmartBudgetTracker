@@ -48,7 +48,7 @@ def logout():
     flash("Logged Out Successfully")
     return redirect(url_for("auth.login"))
 
-@auth.route("/dashboard")
+@auth.route("/")
 @login_required
 def dashboard():
     watch_requests = WatchRequest.query.filter_by(
