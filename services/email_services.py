@@ -1,9 +1,11 @@
 from flask_mail import Message
+from flask import current_app
 from extensions  import mail
 
 def send_price_alert(user,product):
     msg=Message(
         subject="Price Drop Alert",
+        sender=current_app.config["MAIL_DEFAULT_SENDER"],
         recipients=[user.email]
     )
     msg.body = f"""

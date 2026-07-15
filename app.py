@@ -8,9 +8,10 @@ app=Flask(__name__)
 database_url = os.getenv("DATABASE_URL")
 
 if database_url:
-    database_url = database_url.replace("postgres://", "postgresql://", 1)
+    if database_url.startswith("postgres://"):
+        database_url = database_url.replace("postgres://", "postgresql://", 1)
 else:
-    database_url = "sqlite:///instance/price_tracker.db"
+    database_url = "sqlite:///price_tracker.db"
 
 app.config["SQLALCHEMY_DATABASE_URI"] = database_url
 
@@ -23,6 +24,7 @@ app.config["MAIL_USE_TLS"] = os.getenv("MAIL_USE_TLS") == "True"
 
 app.config["MAIL_USERNAME"] = os.getenv("MAIL_USERNAME")
 app.config["MAIL_PASSWORD"] = os.getenv("MAIL_PASSWORD")
+app.config["MAIL_DEFAULT_SENDER"] = os.getenv("MAIL_DEFAULT_SENDER")
 db.init_app(app)
 migrate.init_app(app,db)
 bcrypt.init_app(app)

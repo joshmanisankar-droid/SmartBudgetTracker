@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <title>Edit Target Price — Smart Budget Tracker</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
 <div class="shell">
@@ -16,7 +16,7 @@
     </div>
 
     <nav class="nav">
-      <a href="{{ url_for('product.dashboard') }}">
+      <a href="{{ url_for('auth.dashboard') }}">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
         Dashboard
       </a>
@@ -82,7 +82,7 @@
           
           <button type="submit" class="btn btn-primary full" style="margin-bottom: 12px;">Update Target Price</button>
           
-          <a href="{{ url_for('product.dashboard') }}" class="btn" style="text-decoration: none; display: flex; justify-content: center; border: 1px solid var(--border); color: var(--muted); background: transparent;">
+          <a href="{{ url_for('auth.dashboard') }}" class="btn" style="text-decoration: none; display: flex; justify-content: center; border: 1px solid var(--border); color: var(--muted); background: transparent;">
             Cancel & Go Back
           </a>
         </form>
