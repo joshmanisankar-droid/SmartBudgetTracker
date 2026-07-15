@@ -15,6 +15,7 @@ def check_prices(app):
                 data = scrape_product(product.url)
             except Exception as e:
                 print(f"Skipping '{product.title}': {e}")
+                db.session.rollback()
                 continue
             product.current_price = data["price"]
             product.last_checked = datetime.utcnow()
@@ -43,9 +44,14 @@ def start_scheduler(app):
     print("Starting APScheduler...")
     scheduler.add_job(
         check_prices,
-        "interval",
-        seconds=10,
-        args=[app]
+        trigger="interval",
+        seconds=60,
+        args=[app],
+        id="price_checker",
+        max_instances=1,
+        coalesce=True,
+        misfire_grace_time=30,
+        replace_existing=True,
     )
     scheduler.start()
     print("APScheduler started.")
