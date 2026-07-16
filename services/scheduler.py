@@ -16,11 +16,18 @@ def check_prices(app):
             for product in products:
                 print(f"Checking: {product.title}")
                 try:
-                    data = scrape_product(product.url)
+                    print("Calling send_price_alert()...")
+                    send_price_alert(watch.user, product)
+                    print("mail.send() returned successfully")
+
+                    watch.notification_sent = True
+                    db.session.commit()
+
+                    print("notification_sent updated")
                 except Exception as e:
-                    print(f"Skipping '{product.title}': {e}")
+                    print("EMAIL ERROR:", e)
+                    traceback.print_exc()
                     db.session.rollback()
-                    continue
 
                 product.current_price = data["price"]
                 product.last_checked = datetime.utcnow()
