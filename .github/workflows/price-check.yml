@@ -1,0 +1,15 @@
+name: Price Checker
+
+on:
+  schedule:
+    - cron: "*/2 * * * *"   # Every 5 minutes
+  workflow_dispatch:
+
+jobs:
+  check-prices:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Call Render endpoint
+        run: |
+          curl -X GET https://smartbudgettracker-3zve.onrender.com/run-price-check
