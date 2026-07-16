@@ -1,3 +1,7 @@
+from flask_mail import Message
+from flask import current_app
+from extensions  import mail
+
 def send_price_alert(user, product):
     print(f"Preparing email for {user.email}")
 
