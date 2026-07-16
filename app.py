@@ -37,12 +37,13 @@ def load_user(user_id):
     return db.session.get(User, int(user_id))
 with app.app_context():
     db.create_all()
-from services.scheduler import start_scheduler
+
+#from services.scheduler import start_scheduler
 
 # Start the scheduler once. On Render (gunicorn) WERKZEUG_RUN_MAIN is not set,
 # so start the scheduler unless we're the Werkzeug parent process.
-if not app.debug or os.environ.get("WERKZEUG_RUN_MAIN") == "true":
-    start_scheduler(app)
+#if not app.debug or os.environ.get("WERKZEUG_RUN_MAIN") == "true":
+#    start_scheduler(app)
 
 from routes.auth import auth 
 app.register_blueprint(auth)
